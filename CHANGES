@@ -1,0 +1,7 @@
+#===2.4.3(2006-08-28): fix parse mail list bugs
+#===2.4.2(2006-08-17): fix filter bugs
+#===2.4.1(2006-08-01): add email filter
+#===2.4.0(2006-07-31): document format
+#===2.3.0(2005-08-18): smtp support, non-ascii attachment file name support
+#===2.0.1(2005-08-12): modified _sendmail, die if sendmail_path not valid 
+#===2.0.0(2005-08-12): second version release, Simplify the first version, and add some function

@@ -1,0 +1,16 @@
+# http://module-build.sourceforge.net/META-spec.html
+#XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
+name:         EasyMail
+version:      2.4.3
+version_from: EasyMail.pm
+installdirs:  site
+requires:
+    Encode:                        0
+    File::Basename:                0
+    FileHandle:                    0
+    IO::Socket::INET:              0
+    MIME::Base64:                  0
+    Time::Local:                   0
+
+distribution_type: module
+generated_by: ExtUtils::MakeMaker version 6.17
