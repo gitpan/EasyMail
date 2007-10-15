@@ -1,16 +1,17 @@
-# http://module-build.sourceforge.net/META-spec.html
-#XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
-name:         EasyMail
-version:      2.4.3
-version_from: EasyMail.pm
-installdirs:  site
-requires:
+--- #YAML:1.0
+name:                EasyMail
+version:             2.4.4
+abstract:            ~
+license:             ~
+generated_by:        ExtUtils::MakeMaker version 6.36
+distribution_type:   module
+requires:     
     Encode:                        0
     File::Basename:                0
     FileHandle:                    0
     IO::Socket::INET:              0
     MIME::Base64:                  0
     Time::Local:                   0
-
-distribution_type: module
-generated_by: ExtUtils::MakeMaker version 6.17
+meta-spec:
+    url:     http://module-build.sourceforge.net/META-spec-v1.2.html
+    version: 1.2

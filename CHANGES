@@ -1,3 +1,4 @@
+#===2.4.4(2007-10-10): modify X-Mailer, remove Thread-Index and X-MimeOLE, fix BCC bug
 #===2.4.3(2006-08-28): fix parse mail list bugs
 #===2.4.2(2006-08-17): fix filter bugs
 #===2.4.1(2006-08-01): add email filter

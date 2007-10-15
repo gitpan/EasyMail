@@ -2,7 +2,7 @@ package EasyMail;
 use strict;
 use warnings(FATAL=>'all');
 
-our $VERSION = '2.4.3';
+our $VERSION = '2.4.4';
 
 #===================================
 #===Module  : 43f01b295f6fcfca
@@ -35,6 +35,7 @@ our $VERSION = '2.4.3';
 
 #Future Request:
 
+#===2.4.4(2007-10-10): modify X-Mailer, remove Thread-Index and X-MimeOLE, fix BCC bug
 #===2.4.3(2006-08-28): fix parse mail list bugs
 #===2.4.2(2006-08-17): fix filter bugs
 #===2.4.1(2006-08-01): add email filter
@@ -81,12 +82,7 @@ sub is_email($){
 		local $_=$_[0];
 		if(!defined($_)){
 			return defined(&_name_false)?&_name_false:'';
-#==2.4.1==
-#		}elsif(/^[a-zA-Z0-9\_]\@([a-zA-Z0-9]([a-zA-Z0-9\-]*[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}$/){
-#			return defined(&_name_true)?&_name_true:1;
-#		}elsif(/^[a-zA-Z0-9\_][a-zA-Z0-9\_\.\-]*[a-zA-Z0-9\_]\@([a-zA-Z0-9]([a-zA-Z0-9\-]*[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}$/){
 		}elsif(/^[a-zA-Z0-9\_\.\-]+\@([a-zA-Z0-9]([a-zA-Z0-9\-]*[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}$/){
-#===end===
 			return defined(&_name_true)?&_name_true:1;
 		}else{
 			return defined(&_name_false)?&_name_false:'';
@@ -232,24 +228,16 @@ sub parse_email_name_pair($){
 	if(($type eq '')&&(defined($email_name_pair))){
 		local $_=$email_name_pair;
 		s/^\s+//,s/\s+$//;
-#==2.4.3==
-#		if(/^[a-zA-Z0-9\_]([a-zA-Z0-9\_\.\-]*[a-zA-Z0-9\_])?\@([a-zA-Z0-9]([a-zA-Z0-9\-]*[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}$/){
 		if(/^[a-zA-Z0-9\_\.\-]+\@([a-zA-Z0-9]([a-zA-Z0-9\-]*[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}$/){
 			return ($_,undef);
-#		}elsif(/^([^\s](.*[^\s])?)[\s]+([a-zA-Z0-9\_]([a-zA-Z0-9\_\.\-]*[a-zA-Z0-9\_])?\@([a-zA-Z0-9]([a-zA-Z0-9\-]*[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6})$/){
 		}elsif(/^([^\s](.*[^\s])?)[\s]+([a-zA-Z0-9\_\.\-]+\@([a-zA-Z0-9]([a-zA-Z0-9\-]*[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6})$/){
 			return ($3,$1);
-#		}elsif(/^([a-zA-Z0-9\_]([a-zA-Z0-9\_\.\-]*[a-zA-Z0-9\_])?\@([a-zA-Z0-9]([a-zA-Z0-9\-]*[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6})[\s]+([^\s](.*[^\s])?)$/){
 		}elsif(/^([a-zA-Z0-9\_\.\-]+\@([a-zA-Z0-9]([a-zA-Z0-9\-]*[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6})[\s]+([^\s](.*[^\s])?)$/){
-#			return ($1,$5);
 			return ($1,$4);
-#		}elsif(/^[\"](.*)[\"][\s]*[\<][\s]*([a-zA-Z0-9\_]([a-zA-Z0-9\_\.\-]*[a-zA-Z0-9\_])?\@([a-zA-Z0-9]([a-zA-Z0-9\-]*[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6})[\s]*[\>]$/){
 		}elsif(/^[\"](.*)[\"][\s]*[\<][\s]*([a-zA-Z0-9\_\.\-]+\@([a-zA-Z0-9]([a-zA-Z0-9\-]*[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6})[\s]*[\>]$/){
 			return ($2,$1);
-#		}elsif(/^([^\s](.*[^\s])?)[\s]*[\<][\s]*([a-zA-Z0-9\_]([a-zA-Z0-9\_\.\-]*[a-zA-Z0-9\_])?\@([a-zA-Z0-9]([a-zA-Z0-9\-]*[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6})[\s]*[\>]$/){
 		}elsif(/^([^\s](.*[^\s])?)[\s]*[\<][\s]*([a-zA-Z0-9\_\.\-]+\@([a-zA-Z0-9]([a-zA-Z0-9\-]*[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6})[\s]*[\>]$/){
 			return ($3,$1);
-#===end===
 		}else{
 			return (undef,undef);		
 		}
@@ -469,7 +457,6 @@ sub sendmail($){
 	#From
 	($str,$from_email)=gen_email_name_pair($email,$name,$src_encoding,$dst_encoding,$dst_encoding_txt);
 	$mail.=gen_header('From',$str,$line_delimiter);
-#==2.4.1==
 	if (defined($param->{mail_filter})){
 			if (ref $param->{mail_filter} eq 'ARRAY'){
 					$param->{to} = _filter_mail($param->{mail_filter}, $param->{to});
@@ -477,7 +464,6 @@ sub sendmail($){
 					$param->{bcc} = _filter_mail($param->{mail_filter}, $param->{bcc});
 			}
 	}
-#===end===
 
 	($str,$ra_to)=gen_email_name_pair_list($param->{to},$src_encoding,$dst_encoding,$dst_encoding_txt);
 	#To&CC
@@ -490,7 +476,7 @@ sub sendmail($){
 	
 	#BCC
 	($str,$ra_bcc)=gen_email_name_pair_list($param->{bcc},$src_encoding,$dst_encoding,$dst_encoding_txt);
-	if(!defined($hide_bcc_flag)){$mail.=gen_header('BCC',$str,$line_delimiter);}
+	if(!$hide_bcc_flag){$mail.=gen_header('BCC',$str,$line_delimiter);} 
 	
 	#Subject
 	my $subject=$param->{subject};
@@ -577,9 +563,7 @@ sub sendmail($){
 	#Transfer-Encoding
 	$mail.=$header_transfer_encoding;
 	#Other
-	$mail.=gen_header('X-Mailer','Microsoft Office Outlook, Build 11.0.5510',$line_delimiter);
-	$mail.=gen_header('Thread-Index','AcTHCIk2Isqx14ofSxywdAZs/A+u/A==',$line_delimiter);
-	$mail.=gen_header('X-MimeOLE','Produced By Microsoft MimeOLE V6.00.3790.181',$line_delimiter);
+	$mail.=gen_header('X-Mailer',_name_pkg_name(),$line_delimiter);
 	$mail.=$line_delimiter;
 	
 	#Body
@@ -589,7 +573,6 @@ sub sendmail($){
 	EasyMail::Sender::sendmail($m);
 }
 
-#==2.4.1==
 sub _filter_mail($$){
 		my ($ra_filter, $email_list) = @_;
 		my $ra_filter_str = [];
@@ -638,7 +621,6 @@ sub _filter_mail($$){
 		
 		return $filter_email_list;
 }
-#===end===
 
 #please use simple char in file_path and file_name
 sub _process_file($){
@@ -833,9 +815,9 @@ sub parse_sender($){
 	if(!defined($type)){
 		CORE::die((defined(&_name_pkg_name)?&_name_pkg_name.'::':'').'sendmail: unknow sender type');
 	}elsif($type eq 'SENDMAIL'){
-		return {line_delimiter=>"\n",hide_bcc=>&_name_true};
+		return {line_delimiter=>"\n",hide_bcc=>&_name_false}; 
 	}elsif(($type eq 'SMTPAUTHLOGIN')||($type eq 'SMTPAUTHPLAIN')||($type eq 'SMTPAUTHNONE')){
-		return {line_delimiter=>"\r\n",hide_bcc=>&_name_false};
+		return {line_delimiter=>"\r\n",hide_bcc=>&_name_true}; 
 	}else{
 		CORE::die((defined(&_name_pkg_name)?&_name_pkg_name.'::':'').'sendmail: unknow sender type');
 	}
