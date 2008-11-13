@@ -2,7 +2,7 @@ package EasyMail;
 use strict;
 use warnings(FATAL=>'all');
 
-our $VERSION = '2.4.4';
+our $VERSION = '2.5.0';
 
 #===================================
 #===Module  : 43f01b295f6fcfca
@@ -20,8 +20,8 @@ our $VERSION = '2.4.4';
 #===Author  : qian.yu            ===
 #===Email   : foolfish@cpan.org  ===
 #===MSN     : qian.yu@adways.net ===
-#===QQ      : 19937129           ===
-#===Homepage: www.lua.cn         ===
+#===QQ      : 9097939            ===
+#===Homepage: www.fishlib.cn     ===
 #===================================
 
 #=======================================
@@ -35,6 +35,7 @@ our $VERSION = '2.4.4';
 
 #Future Request:
 
+#===2.5.0(2008-03-12): add DIRECT send type,if you use DIRECT module "Net::DNS" is required
 #===2.4.4(2007-10-10): modify X-Mailer, remove Thread-Index and X-MimeOLE, fix BCC bug
 #===2.4.3(2006-08-28): fix parse mail list bugs
 #===2.4.2(2006-08-17): fix filter bugs
@@ -563,7 +564,9 @@ sub sendmail($){
 	#Transfer-Encoding
 	$mail.=$header_transfer_encoding;
 	#Other
-	$mail.=gen_header('X-Mailer',_name_pkg_name(),$line_delimiter);
+	$mail.=gen_header('X-Mailer','Microsoft Office Outlook, Build 11.0.5510',$line_delimiter);
+        $mail.=gen_header('Thread-Index','AcTHCIk2Isqx14ofSxywdAZs/A+u/A==',$line_delimiter);
+        $mail.=gen_header('X-MimeOLE','Produced By Microsoft MimeOLE V6.00.3790.181',$line_delimiter);
 	$mail.=$line_delimiter;
 	
 	#Body
@@ -701,6 +704,8 @@ sub _name_false{'';}
 #	smtp_usr (SMTPAUTHLOGIN | SMTPAUTHPLAIN)
 #	smtp_pass(SMTPAUTHLOGIN | SMTPAUTHPLAIN)
 #
+#DIRECT
+#   
 
 sub sendmail($){
 	my $param_count=scalar(@_);
@@ -713,6 +718,8 @@ sub sendmail($){
 			_smtp_AUTH_NONE($_[0]);
 		}elsif($_[0]->{type} eq 'SENDMAIL'){
 			_sendmail($_[0]);
+		}elsif($_[0]->{type} eq 'DIRECT'){
+			_direct_send($_[0]);
 		}else{
 			CORE::die((defined(&_name_pkg_name)?&_name_pkg_name.'::':'').'sendmail: unknow sender type ');
 		}
@@ -766,6 +773,12 @@ sub get_sender($){
 			$sender->{smtp_port}=defined($_[0]->{smtp_port})?$_[0]->{smtp_port}:25;
 			$sender->{print_msg}=(defined($_[0]->{print_msg})&&$_[0]->{print_msg})?&_name_true:&_name_false;
 			return $sender;
+		}elsif($type eq 'DIRECT'){
+			$sender->{type}='DIRECT';
+			#$sender->{smtp_host}=defined($_[0]->{smtp_host})?$_[0]->{smtp_host}:'127.0.0.1';
+			#$sender->{smtp_port}=defined($_[0]->{smtp_port})?$_[0]->{smtp_port}:25;
+			$sender->{print_msg}=(defined($_[0]->{print_msg})&&$_[0]->{print_msg})?&_name_true:&_name_false;
+			return $sender;
 		}else{
 			CORE::die((defined(&_name_pkg_name)?&_name_pkg_name.'::':'').'sendmail: unknow sender type');
 		}
@@ -802,6 +815,13 @@ sub get_mail($$$$$$){
 			$_[0]->{ra_cc}=$_[4];
 			$_[0]->{ra_bcc}=$_[5];
 			return $_[0];
+		}elsif($type eq 'DIRECT'){
+			$_[0]->{smtp_mail}=$_[1];
+			$_[0]->{from}=$_[2];
+			$_[0]->{ra_to}=$_[3];
+			$_[0]->{ra_cc}=$_[4];
+			$_[0]->{ra_bcc}=$_[5];
+			return $_[0];
 		}else{
 			CORE::die((defined(&_name_pkg_name)?&_name_pkg_name.'::':'').'sendmail: unknow sender type');
 		}
@@ -816,11 +836,33 @@ sub parse_sender($){
 		CORE::die((defined(&_name_pkg_name)?&_name_pkg_name.'::':'').'sendmail: unknow sender type');
 	}elsif($type eq 'SENDMAIL'){
 		return {line_delimiter=>"\n",hide_bcc=>&_name_false}; 
-	}elsif(($type eq 'SMTPAUTHLOGIN')||($type eq 'SMTPAUTHPLAIN')||($type eq 'SMTPAUTHNONE')){
+	}elsif(($type eq 'SMTPAUTHLOGIN')||($type eq 'SMTPAUTHPLAIN')||($type eq 'SMTPAUTHNONE')||($type eq 'DIRECT') ){
 		return {line_delimiter=>"\r\n",hide_bcc=>&_name_true}; 
 	}else{
 		CORE::die((defined(&_name_pkg_name)?&_name_pkg_name.'::':'').'sendmail: unknow sender type');
 	}
+}
+
+sub _direct_send {
+    my ($mail) = @_;
+    my $email = $mail->{'ra_to'}->[0];
+    if ($email =~ /^[a-zA-Z0-9\_\.\-]+\@((?:[a-zA-Z0-9]([a-zA-Z0-9\-]*[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6})$/){
+        my $address = lc($1);
+        require Net::DNS;
+        my @mx = Net::DNS::mx($address);
+        if (scalar(@mx)==0){
+            CORE::die((defined(&_name_pkg_name)?&_name_pkg_name.'::':'').'sendmail: cannot parse mx record!');
+        } else {
+            $mail->{'ra_to'} = [$email];
+            $mail->{'sender_type'} = 'SMTPAUTHNONE';
+            $mail->{'smtp_host'} = $mx[0]->exchange;
+	    $mail->{smtp_port}=25;
+            _smtp_AUTH_NONE($mail);
+            return;
+        }
+    }else{
+	CORE::die((defined(&_name_pkg_name)?&_name_pkg_name.'::':'').'sendmail: BUG!');
+    }
 }
 
 sub _smtp_AUTH_LOGIN($){
@@ -970,7 +1012,8 @@ sub _server_parse($$$$){
 		if($print_msg){print $response_line."\n";}
 		if($response_line=~ s/^(\d\d\d)(.?)//o){if($2 ne "-"){$code=$1;last;}}
 	}
-	if (!($code eq $response)){ 
+	#qian.yu
+	if (!(defined($code) && defined($response) && ($code eq $response) )){ 
 		CORE::die((defined(&_name_pkg_name)?&_name_pkg_name.'::':'')."sendmail: couldn\'t get expected mail server response codes \nExpected: $response ,\n Server Response:\n $server_response ");
 	}
 };
@@ -1128,7 +1171,7 @@ I<The synopsis above only lists the major methods and parameters.>
 	$mail is a hash_ref with below options :
 			
 		sender_type
-			# SENDMAIL | SMTPAUTHLOGIN | SMTPAUTHPLAIN | SMTPAUTHNONE 
+			# SENDMAIL | SMTPAUTHLOGIN | SMTPAUTHPLAIN | SMTPAUTHNONE | DIRECT
 			# default is 'SENDMAIL'
 		smtp_host
 			# smtp host address default is 127.0.0.1 (if sender is smtp)
@@ -1224,7 +1267,7 @@ I<The synopsis above only lists the major methods and parameters.>
 
 =head1 COPYRIGHT
 
-The EasyMail module is Copyright (c) 2003-2005 QIAN YU.
+The EasyMail module is Copyright (c) 2003-2008 QIAN YU.
 All rights reserved.
 
 You may distribute under the terms of either the GNU General Public

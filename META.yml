@@ -1,9 +1,10 @@
 --- #YAML:1.0
 name:                EasyMail
-version:             2.4.4
+version:             2.5.0
 abstract:            ~
 license:             ~
-generated_by:        ExtUtils::MakeMaker version 6.36
+author:              ~
+generated_by:        ExtUtils::MakeMaker version 6.44
 distribution_type:   module
 requires:     
     Encode:                        0
@@ -13,5 +14,5 @@ requires:
     MIME::Base64:                  0
     Time::Local:                   0
 meta-spec:
-    url:     http://module-build.sourceforge.net/META-spec-v1.2.html
-    version: 1.2
+    url:     http://module-build.sourceforge.net/META-spec-v1.3.html
+    version: 1.3

@@ -1,3 +1,4 @@
+#===2.5.0(2008-03-12): add DIRECT send type,if you use DIRECT module "Net::DNS" is required
 #===2.4.4(2007-10-10): modify X-Mailer, remove Thread-Index and X-MimeOLE, fix BCC bug
 #===2.4.3(2006-08-28): fix parse mail list bugs
 #===2.4.2(2006-08-17): fix filter bugs
