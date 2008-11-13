@@ -1,3 +1,5 @@
+#===2.5.1(2008-07-16): fix bug when traslate charset from utf8 to iso-2022-jp
+#        (2008-05-08): fix bug on dst = 'un'
 #===2.5.0(2008-03-12): add DIRECT send type,if you use DIRECT module "Net::DNS" is required
 #===2.4.4(2007-10-10): modify X-Mailer, remove Thread-Index and X-MimeOLE, fix BCC bug
 #===2.4.3(2006-08-28): fix parse mail list bugs

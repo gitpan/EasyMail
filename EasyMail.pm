@@ -2,7 +2,7 @@ package EasyMail;
 use strict;
 use warnings(FATAL=>'all');
 
-our $VERSION = '2.5.0';
+our $VERSION = '2.5.1';
 
 #===================================
 #===Module  : 43f01b295f6fcfca
@@ -35,6 +35,8 @@ our $VERSION = '2.5.0';
 
 #Future Request:
 
+#===2.5.1(2008-07-16): fix bug when traslate charset from utf8 to iso-2022-jp
+#        (2008-05-08): fix bug on dst = 'un'
 #===2.5.0(2008-03-12): add DIRECT send type,if you use DIRECT module "Net::DNS" is required
 #===2.4.4(2007-10-10): modify X-Mailer, remove Thread-Index and X-MimeOLE, fix BCC bug
 #===2.4.3(2006-08-28): fix parse mail list bugs
@@ -182,7 +184,18 @@ sub change_encoding($$$){
 		#no need to do anything if $src_encoding=$dst_encoding
 		return $_[0];
 	}elsif(defined($_[1])&&defined($_[2])&&($_[1] ne $_[2])){
-		return Encode::encode($_[2],Encode::decode($_[1],$_[0]));
+        if ($_[1] eq 'utf8' and $_[2] eq 'iso-2022-jp') {
+            eval {
+                require Unicode::Japanese;
+            };
+            if ($@) {
+                return Encode::encode($_[2],Encode::decode($_[1],$_[0]));
+            } else {
+                return Unicode::Japanese->new($_[0])->jis;
+            }
+        } else {
+            return Encode::encode($_[2],Encode::decode($_[1],$_[0]));
+        }
 	}else{
 		CORE::die((defined(&_name_pkg_name)?&_name_pkg_name.'::':'').'sendmail: you must set src_encoding');
 	}
@@ -439,7 +452,7 @@ sub sendmail($){
 
 	my ($dst_encoding,$dst_encoding_txt);
 	if($dst eq 'un'){
-		$dst_encoding='utf8';$dst_encoding_txt=$dst_encoding;
+		$dst_encoding='utf8';$dst_encoding_txt='utf-8';
 	}elsif($dst eq 'cn'){
 		$dst_encoding='gbk';$dst_encoding_txt='gb2312';
 	}elsif($dst eq 'jp'){
@@ -564,9 +577,7 @@ sub sendmail($){
 	#Transfer-Encoding
 	$mail.=$header_transfer_encoding;
 	#Other
-	$mail.=gen_header('X-Mailer','Microsoft Office Outlook, Build 11.0.5510',$line_delimiter);
-        $mail.=gen_header('Thread-Index','AcTHCIk2Isqx14ofSxywdAZs/A+u/A==',$line_delimiter);
-        $mail.=gen_header('X-MimeOLE','Produced By Microsoft MimeOLE V6.00.3790.181',$line_delimiter);
+	$mail.=gen_header('X-Mailer',_name_pkg_name(),$line_delimiter);
 	$mail.=$line_delimiter;
 	
 	#Body
