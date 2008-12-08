@@ -1,3 +1,4 @@
+#===2.5.2(2008-12-08): fix bug "http://rt.cpan.org/Ticket/Display.html?id=34032",thanks to "Ursetti, Jerry" find this bug 
 #===2.5.1(2008-07-16): fix bug when traslate charset from utf8 to iso-2022-jp
 #        (2008-05-08): fix bug on dst = 'un'
 #===2.5.0(2008-03-12): add DIRECT send type,if you use DIRECT module "Net::DNS" is required

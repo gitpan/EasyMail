@@ -2,7 +2,7 @@ package EasyMail;
 use strict;
 use warnings(FATAL=>'all');
 
-our $VERSION = '2.5.1';
+our $VERSION = '2.5.2';
 
 #===================================
 #===Module  : 43f01b295f6fcfca
@@ -35,6 +35,7 @@ our $VERSION = '2.5.1';
 
 #Future Request:
 
+#===2.5.2(2008-12-08): fix bug "http://rt.cpan.org/Ticket/Display.html?id=34032",thanks to "Ursetti, Jerry" find this bug 
 #===2.5.1(2008-07-16): fix bug when traslate charset from utf8 to iso-2022-jp
 #        (2008-05-08): fix bug on dst = 'un'
 #===2.5.0(2008-03-12): add DIRECT send type,if you use DIRECT module "Net::DNS" is required
@@ -327,7 +328,16 @@ my $_short_day_name=
 my $_time_zone_name_2=
 	['-1200','-1100','-1000','-0900','-0800','-0700','-0600','-0500','-0400','-0300','-0200','-0100','+0000','+0100','+0200','+0300','+0400','+0500','+0600','+0700','+0800','+0900','+1000','+1100','+1200','+1300'];
 sub gen_date(){
-	my $tz=int ((Time::Local::timegm(0,0,0,1,0,2000)-Time::Local::timelocal(0,0,0,1,0,2000))/3600);
+	my @now = localtime(time);
+	my $sec = $now[0];
+	my $min = $now[1];
+	my $hr = $now[2];
+	my $day = $now[3];
+	my $mon = $now[4];
+	my $yr = $now[5] + 1900;
+	my $gm = Time::Local::timegm($sec,$min,$hr,$day,$mon,$yr);
+	my $local = Time::Local::timelocal($sec,$min,$hr,$day,$mon,$yr);
+	my $tz = int (($gm-$local)/3600);
 	my $t=[localtime(CORE::time())];
 	return sprintf('%03s, %02s %03s %04s %02s:%02s:%02s %05s',$_short_day_name->[$t->[6]],$t->[3],$_short_month_name->[$t->[4]],$t->[5]+1900,$t->[2],$t->[1],$t->[0],$_time_zone_name_2->[$tz+12]);
 }
